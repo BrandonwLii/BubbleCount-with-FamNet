@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw
 import os
 import copy
+from tqdm import tqdm
 from utils import Transform
 
 def load_exemplars_from_directory(dir_path, reverse_bbox=False):
@@ -82,7 +83,7 @@ def crop_images(image_path1, image_path2, crop_size, crop_position, output_path)
     print("Images cropped and saved successfully.")
     return
 
-def crop_to_interest(image_dir, region, output_dir):
+def SS_crop_to_interest(image_dir, region, output_dir):
     """Crop the bubble experiment images to the region of interest
 
     It takes the directory path of the images to crop as well as the output directory
@@ -107,9 +108,9 @@ def crop_to_interest(image_dir, region, output_dir):
         if not image_name.lower().endswith('.jpg'):
             continue
         # Crop the image using the region coordinates
-        image_to_crop = Image.open(f"{image_dir}{image_name}").convert('RGB')
+        image_to_crop = Image.open(os.path.join(image_dir, image_name)).convert('RGB')
         image_to_crop.load()
-        print(f"Image {image_name} loaded from {image_dir}.")
+        # print(f"Image {image_name} loaded from {image_dir}.")
 
         cropped_image = image_to_crop.crop((x1, y1, x2, y2))
 
@@ -117,6 +118,45 @@ def crop_to_interest(image_dir, region, output_dir):
         cropped_path = os.path.join(output_dir, image_name.replace(".jpg","_cropped.jpg"))
         cropped_image.save(cropped_path)
 
+    print(f"Cropped images in {image_dir}")
+    return
+
+def crop_to_interest(image_dir, region, output_dir):
+    """Crop the bubble experiment images to the region of interest
+
+    It takes the directory path of the images to crop as well as the output directory
+    as inputs. Current region is taken as [65, 770, 1090, 970] (Aug 13)
+    Developed this with the experiment photos in mind. The size of those are 
+    1920 x 1200.
+    
+    Args:
+        input_img: loaded image with PIL
+        region: y1, x1, y2, x2 coordinates of the region (which makes no senes but
+                this is established in the repo, and I don't want to make it consfusing.)
+        output_dir: string of output directory
+
+    Output: a cropped image
+    """
+    # Extract the region coordinates
+    y1, x1, y2, x2 = region
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    batch_name = image_dir.split("\\")[-1]
+    
+    for image_name in tqdm(os.listdir(image_dir), desc="Processing Images"):
+        if not image_name.lower().endswith('.jpg'):
+            continue
+        # Crop the image using the region coordinates
+        image_to_crop = Image.open(os.path.join(image_dir, image_name)).convert('RGB')
+        image_to_crop.load()
+
+        cropped_image = image_to_crop.crop((x1, y1, x2, y2))
+
+        # Save the cropped image to the specified directory
+        cropped_path = os.path.join(output_dir, image_name.replace(".jpg", "_cropped.jpg"))
+        cropped_image.save(cropped_path)
+
+    print(f"Cropped images in {batch_name}")
     return
 
 def insert_cropped(sample_img, target_img, boxes, num_box=4):
