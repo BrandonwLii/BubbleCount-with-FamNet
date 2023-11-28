@@ -17,6 +17,15 @@ ADJUSTED_DIR_NAME = "adjusted_exemplar"
 
 # Main Pipe
 class CountingPipe():
+    """ Pipeline for counting objects in images using exemplars from sample images
+
+        An implementation of the FamNet model where the object of interest is defined 
+        in the sample images with bounding boxes. The paths are defined in the `args`, 
+        which should be updated when needed: 
+            "sample_path", "target_path", "output_dir", "model_path"
+
+        Developed by Eric Wang, Nov 2023
+    """
     def __init__(self, args=None, num_boxes=4):
         self.result_to_csv = []
         self.args = {
