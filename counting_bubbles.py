@@ -1,4 +1,8 @@
-""" Script for counting through the entire set of experiment images"""
+""" Script for counting through the entire set of experiment images
+
+    Make sure the desired exemplars are saved in the exemplar folder, which is then
+    specified in the args. And same with the target folder. 
+"""
 
 from BubbleCount.counting_model import CountingPipe
 
