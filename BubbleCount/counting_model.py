@@ -280,7 +280,6 @@ class CountingPipe():
         # plot all results
         rslt_file_name = f"{output_directory}{image_name}_out.png"
         visualize_output_and_save(hybrid.detach().cpu(), output.detach().cpu(), boxes.cpu(), rslt_file_name)
-        # self.b_plot_result = False
         print(f"===> Visualized output of batch{image_name} is saved to {rslt_file_name}")
         return count
 
