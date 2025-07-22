@@ -341,6 +341,90 @@ def scale_and_clip(val, scale_factor, min_val, max_val):
     new_val = min(new_val, max_val)
     return new_val
 
+def visualize_output_separate_and_save(input_, output, boxes, filename, save_path,figsize=(5, 3), dots=None):
+    """
+        dots: Nx2 numpy array for the ground truth locations of the dot annotation
+            if dots is None, this information is not available
+    """
+
+    # get the total count
+    pred_cnt = output.sum().item()
+    boxes = boxes.squeeze(0)
+
+    boxes2 = []
+    for i in range(0, boxes.shape[0]):
+        y1, x1, y2, x2 = int(boxes[i, 1].item()), int(boxes[i, 2].item()), int(boxes[i, 3].item()), int(
+            boxes[i, 4].item())
+        roi_cnt = output[0,0,y1:y2, x1:x2].sum().item()
+        boxes2.append([y1, x1, y2, x2, roi_cnt])
+
+    img1 = format_for_plotting(denormalize(input_))
+    output = format_for_plotting(output)
+
+    fig = plt.figure(figsize=figsize)
+
+    # display the input image
+    ax = fig.add_axes(rect=(0,0,1,1))
+    ax.set_axis_off()
+    ax.imshow(img1)
+
+    # add patches
+    for bbox in boxes2:
+        y1, x1, y2, x2 = bbox[0], bbox[1], bbox[2], bbox[3]
+        rect = patches.Rectangle((x1, y1), x2-x1, y2-y1, linewidth=3, edgecolor='y', facecolor='none')
+        rect2 = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='k', linestyle='--', facecolor='none')
+        ax.add_patch(rect)
+        ax.add_patch(rect2)
+
+    if dots is not None:
+        ax.scatter(dots[:, 0], dots[:, 1], c='red', edgecolors='blue')
+        # ax.scatter(dots[:,0], dots[:,1], c='black', marker='+')
+        #ax.set_title("Input image, gt count: {}".format(dots.shape[0]))
+
+    #fig.savefig(f"{save_path}Inputs/{filename}.png", bbox_inches="tight", pad_inches=0)
+
+    fig = plt.figure(figsize=figsize)
+
+    ax = fig.add_axes(rect=(0,0,1,1))
+    ax.set_axis_off()
+    #ax.set_title("Overlaid result, predicted count: {:.2f}".format(pred_cnt))
+
+    img2 = 0.2989*img1[:,:,0] + 0.5870*img1[:,:,1] + 0.1140*img1[:,:,2]
+    ax.imshow(img2, cmap='gray')
+    ax.imshow(output, cmap=plt.cm.viridis, alpha=0.5)
+
+    fig.savefig(f"{save_path}Overlaid/{filename}.png", bbox_inches="tight", pad_inches=0)
+
+    fig = plt.figure(figsize=figsize)
+
+    # display the density map
+    ax = fig.add_axes(rect=(0,0,1,1))
+    ax.set_axis_off()
+    #ax.set_title("Density map, predicted count: {:.2f}".format(pred_cnt))
+    ax.imshow(output)
+    # plt.colorbar()
+
+    fig.savefig(f"{save_path}Density/{filename}.png", bbox_inches="tight", pad_inches=0)
+
+    fig = plt.figure(figsize=figsize)
+
+    ax = fig.add_axes(rect=(0,0,1,1))
+    ax.set_axis_off()
+    #ax.set_title("Density map, predicted count: {:.2f}".format(pred_cnt))
+    ret_fig = ax.imshow(output)
+    for bbox in boxes2:
+        y1, x1, y2, x2, roi_cnt = bbox[0], bbox[1], bbox[2], bbox[3], bbox[4]
+        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=3, edgecolor='y', facecolor='none')
+        rect2 = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='k', linestyle='--',
+                                  facecolor='none')
+        ax.add_patch(rect)
+        ax.add_patch(rect2)
+        ax.text(x1, y1, '{:.2f}'.format(roi_cnt), backgroundcolor='y')
+
+    fig.colorbar(ret_fig, ax=ax)
+
+    fig.savefig(f"{save_path}/Graphs/{filename}.png", bbox_inches="tight", pad_inches=0)
+    plt.close()
 
 def visualize_output_and_save(input_, output, boxes, save_path, figsize=(20, 12), dots=None):
     """

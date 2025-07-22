@@ -6,6 +6,7 @@ import shutil
 from model import CountRegressor, Resnet50FPN
 from utils import MAPS, Scales, extract_features
 from utils import visualize_output_and_save
+from utils import visualize_output_separate_and_save
 import BubbleCount.image_preprocess as image_preprocess
 import BubbleCount.csv_helpers as csv_helpers
 
@@ -281,6 +282,41 @@ class CountingPipe():
         rslt_file_name = f"{output_directory}{image_name}_out.png"
         visualize_output_and_save(hybrid.detach().cpu(), output.detach().cpu(), boxes.cpu(), rslt_file_name)
         print(f"===> Visualized output of batch{image_name} is saved to {rslt_file_name}")
+        return count
+    
+    def count_hybrid_and_visualize_separate(self, hybrid, hybrid_boxes, exemplar_name, image_name, output_directory):
+        resnet50_conv = Resnet50FPN()
+        regressor = CountRegressor(6, pool='mean')
+
+        # hybrid = Normalize(hybrid)
+        boxes = torch.Tensor(hybrid_boxes)
+        if self.use_gpu:
+            hybrid = hybrid.cuda()
+            boxes = boxes.cuda()
+            resnet50_conv.cuda()
+            regressor.cuda()
+            regressor.load_state_dict(torch.load(self.args["model_path"]))
+        else:
+            regressor.load_state_dict(torch.load(self.args["model_path"], map_location=torch.device('cpu')))
+
+        resnet50_conv.eval()
+        regressor.eval()
+
+        # feature extraction function
+        with torch.no_grad():
+            features = extract_features(resnet50_conv, hybrid.unsqueeze(0), boxes.unsqueeze(0), MAPS, Scales)
+
+        with torch.no_grad(): output = regressor(features)
+
+        count = output.sum().item()
+
+        # Result image and csv
+        print(f"===> The predicted count for {image_name} is: {count:6.2f}")
+
+        # plot all results
+        #rslt_file_name = f"{output_directory}{image_name}_out"
+        visualize_output_separate_and_save(hybrid.detach().cpu(), output.detach().cpu(), boxes.cpu(), image_name, output_directory)
+        #print(f"===> Visualized output of batch{image_name} is saved")
         return count
 
     def counting_one_batch(self, current_dir):
