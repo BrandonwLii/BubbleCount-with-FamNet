@@ -311,7 +311,7 @@ class CountingPipe():
         count = output.sum().item()
 
         # Result image and csv
-        print(f"===> The predicted count for {image_name} is: {count:6.2f}")
+        #print(f"===> The predicted count for {image_name} is: {count:6.2f}")
 
         # plot all results
         #rslt_file_name = f"{output_directory}{image_name}_out"

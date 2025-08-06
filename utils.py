@@ -424,6 +424,7 @@ def visualize_output_separate_and_save(input_, output, boxes, filename, save_pat
     fig.colorbar(ret_fig, ax=ax)
 
     fig.savefig(f"{save_path}/Graphs/{filename}.png", bbox_inches="tight", pad_inches=0)
+    
     plt.close()
 
 def visualize_output_and_save(input_, output, boxes, save_path, figsize=(20, 12), dots=None):
