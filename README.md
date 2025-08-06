@@ -17,3 +17,27 @@ of the counting pipeline. The pipeline modules are saved in the package
 `BubbleCount`. 
 The directories `Exemplars`, `Targets`, and `Outputs` are used in the pipeline
 
+## Visualization
+Set up by creating a virtual environment and installing requirements.
+```bash
+python -m venv .venv
+source .venv/Scripts/Activate
+pip install -r requirements.txt
+```
+
+Run Visualize Counts.ipynb and modify the following in `args` to your liking:
+
+`"result_path": "./2025/Outputs/out.csv"`
+Directory to store prediction CSV.
+
+`"output_dir": "./2025/Outputs/"`
+Directory for predicted images.
+
+`"raw_img_dir": "./2025/Images/SEN10_1.8_6_300-400"`
+Raw images to be cropped.
+
+`"target_path": "./2025/Targets"`
+Cropped images to be predicted.
+
+Uncomment the following line in the 4th cell to crop raw images (only needs to be run once):
+`image_preprocess.crop_to_interest(image_dir=args["raw_img_dir"],region=[65, 770, 1090, 970],output_dir=args["target_path"])`
